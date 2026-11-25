@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AURELIA — A beleza que respira</title>
+<meta name="description" content="AURELIA — skincare com alma. Fórmulas vivas, 95% naturais, ritual de beleza que respira.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400;1,9..144,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============ TOKENS & RESET ============ */
+:root{
+  --bg:#f7f1ea;
+  --bg-2:#fdf9f4;
+  --card:#fffdf9;
+  --ink:#221a14;
+  --muted:#6f6259;
+  --accent:#c96f4a;
+  --accent-deep:#a85432;
+  --accent-soft:#efd9cb;
+  --peach:#f3c4a8;
+  --rose:#e9a08b;
+  --sage:#7d8b6f;
+  --dark:#211a15;
+  --line:rgba(34,26,20,.12);
+  --shadow:0 24px 60px -24px rgba(64,40,24,.28);
+  --shadow-sm:0 10px 30px -12px rgba(64,40,24,.22);
+  --r-lg:28px;
+  --r-md:20px;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:96px}
+body{
+  font-family:'Manrope',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  line-height:1.6;
+}
+::selection{background:var(--accent);color:#fff}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input{font-family:inherit}
+.serif{font-family:'Fraunces',Georgia,serif;font-weight:500}
+.container{max-width:1200px;margin:0 auto;padding:0 24px}
+
+/* grain + cursor + progress */
+.grain{position:fixed;inset:0;z-index:2000;pointer-events:none;opacity:.05;mix-blend-mode:multiply;
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2"/></filter><rect width="100%" height="100%" filter="url(%23n)" opacity="0.6"/></svg>');}
+.cursor-dot,.cursor-ring{position:fixed;top:0;left:0;pointer-events:none;z-index:3000;border-radius:50%;transform:translate(-50%,-50%);transition:opacity .3s}
+.cursor-dot{width:8px;height:8px;background:var(--accent)}
+.cursor-ring{width:38px;height:38px;border:1.5px solid rgba(201,111,74,.65);transition:width .25s,height .25s,border-color .25s,opacity .3s}
+.cursor-ring.hovering{width:64px;height:64px;border-color:rgba(201,111,74,.95)}
+@media(pointer:coarse){.cursor-dot,.cursor-ring{display:none}}
+#progressBar{position:fixed;top:0;left:0;height:3px;width:100%;z-index:1500;background:linear-gradient(90deg,var(--accent),var(--peach));transform-origin:left;transform:scaleX(0)}
+
+/* scrollbar */
+::-webkit-scrollbar{width:12px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:#d9c6b6;border-radius:8px;border:3px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+
+/* ============ NAV ============ */
+header.nav{position:fixed;top:0;left:0;right:0;z-index:1000;transition:background .4s,border-color .4s,box-shadow .4s;border-bottom:1px solid transparent}
+header.nav.scrolled{background:rgba(247,241,234,.82);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-color:var(--line);box-shadow:0 8px 30px -18px rgba(64,40,24,.35)}
+.nav-inner{max-width:1200px;margin:0 auto;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.logo{font-family:'Fraunces',serif;font-size:1.7rem;font-weight:600;letter-spacing:.04em;display:flex;align-items:center;gap:10px}
+.logo .dot{width:12px;height:12px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--peach));box-shadow:0 0 0 4px rgba(201,111,74,.18);animation:pulse 2.6s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.35)}}
+.nav-links{display:flex;gap:6px;align-items:center}
+.nav-links a{font-size:.85rem;font-weight:600;letter-spacing:.02em;padding:9px 14px;border-radius:999px;color:var(--muted);transition:color .3s,background .3s}
+.nav-links a:hover{color:var(--ink);background:rgba(34,26,20,.06)}
+.nav-cta{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:#fdf7f1;padding:12px 22px;border-radius:999px;font-weight:700;font-size:.85rem;letter-spacing:.02em;transition:transform .35s var(--ease),box-shadow .35s}
+.nav-cta:hover{transform:translateY(-2px);box-shadow:0 14px 30px -12px rgba(34,26,20,.55)}
+.menu-btn{display:none;flex-direction:column;gap:6px;padding:12px;border-radius:12px}
+.menu-btn span{width:24px;height:2px;background:var(--ink);border-radius:2px;transition:transform .35s var(--ease),opacity .3s}
+body.menu-open .menu-btn span:nth-child(1){transform:translateY(8px) rotate(45deg)}
+body.menu-open .menu-btn span:nth-child(2){opacity:0}
+body.menu-open .menu-btn span:nth-child(3){transform:translateY(-8px) rotate(-45deg)}
+.mobile-panel{position:fixed;top:0;right:0;bottom:0;width:min(320px,86vw);z-index:999;background:var(--bg-2);border-left:1px solid var(--line);padding:110px 30px 40px;display:flex;flex-direction:column;gap:6px;transform:translateX(105%);transition:transform .5s var(--ease)}
+body.menu-open .mobile-panel{transform:translateX(0)}
+.mobile-panel a{font-family:'Fraunces',serif;font-size:1.9rem;padding:14px 6px;border-bottom:1px solid var(--line);transition:color .3s,padding-left .3s}
+.mobile-panel a:hover{color:var(--accent);padding-left:14px}
+
+/* ============ HERO ============ */
+.hero{position:relative;min-height:100svh;display:flex;align-items:center;overflow:hidden;padding:150px 0 70px}
+.orb{position:absolute;border-radius:50%;filter:blur(70px);pointer-events:none;opacity:.8;z-index:0;will-change:transform}
+.orb.o1{width:520px;height:520px;top:-160px;right:-120px;background:radial-gradient(circle at 35% 35%,#f6cdb4,transparent 65%);animation:drift 14s ease-in-out infinite alternate}
+.orb.o2{width:440px;height:440px;bottom:-160px;left:-140px;background:radial-gradient(circle at 60% 40%,#cfe0c4,transparent 62%);animation:drift 18s ease-in-out infinite alternate-reverse}
+.orb.o3{width:300px;height:300px;top:38%;left:34%;background:radial-gradient(circle,#f4b8a0,transparent 60%);opacity:.5;animation:drift 11s ease-in-out infinite alternate}
+@keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(40px,30px) scale(1.12)}}
+.hero-grid{position:relative;z-index:2;display:grid;grid-template-columns:1.02fr .98fr;gap:56px;align-items:center;width:100%}
+.pill{display:inline-flex;align-items:center;gap:10px;padding:9px 18px 9px 12px;background:rgba(255,253,249,.75);border:1px solid var(--line);border-radius:999px;font-size:.78rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent-deep);box-shadow:var(--shadow-sm);backdrop-filter:blur(6px)}
+.pill .ping{width:9px;height:9px;border-radius:50%;background:var(--sage);position:relative}
+.pill .ping::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--sage);animation:ping 1.8s ease-out infinite}
+@keyframes ping{0%{transform:scale(.5);opacity:.9}100%{transform:scale(1.6);opacity:0}}
+.hero h1{font-family:'Fraunces',serif;font-weight:400;font-size:clamp(3rem,6.4vw,4.9rem);line-height:1.02;letter-spacing:-.015em;margin:26px 0 24px}
+.hero h1 em{font-style:italic;font-weight:500;background:linear-gradient(115deg,var(--accent-deep) 10%,var(--accent) 45%,var(--peach) 90%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-sub{font-size:1.12rem;color:var(--muted);max-width:46ch;margin-bottom:34px}
+.hero-actions{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:17px 30px;border-radius:999px;font-weight:700;font-size:.98rem;letter-spacing:.01em;transition:transform .4s var(--ease),box-shadow .4s,background .3s,color .3s;position:relative;overflow:hidden}
+.btn-primary{background:var(--ink);color:#fdf7f1;box-shadow:0 18px 38px -14px rgba(34,26,20,.5)}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 26px 46px -14px rgba(34,26,20,.55)}
+.btn-primary svg{transition:transform .4s var(--ease)}
+.btn-primary:hover svg{transform:translateX(5px)}
+.btn-ghost{border:1.5px solid var(--line);color:var(--ink);background:rgba(255,253,249,.6);backdrop-filter:blur(6px)}
+.btn-ghost:hover{transform:translateY(-3px);background:var(--card);border-color:var(--ink)}
+.trust{display:flex;align-items:center;gap:16px;margin-top:38px}
+.trust-avatars{display:flex}
+.trust-avatars span{width:42px;height:42px;border-radius:50%;border:3px solid var(--bg);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;color:#fff;margin-left:-12px}
+.trust-avatars span:first-child{margin-left:0}
+.trust-info{font-size:.82rem;color:var(--muted);line-height:1.45}
+.trust-info strong{display:block;color:var(--ink);font-size:.92rem}
+.stars{color:#d98a3d;letter-spacing:2px;font-size:.85rem}
+
+/* hero visual */
+.hero-visual{position:relative;height:clamp(440px,58vh,600px)}
+.hero-blob{position:absolute;inset:6% 4% 2% 4%;background:linear-gradient(150deg,#f6d3bd,#ecbb9f 40%,#e3a68b);border-radius:46% 54% 58% 42%/46% 44% 56% 54%;animation:blobmorph 12s ease-in-out infinite alternate;box-shadow:var(--shadow)}
+@keyframes blobmorph{
+  0%{border-radius:46% 54% 58% 42%/46% 44% 56% 54%;transform:rotate(-3deg)}
+  50%{border-radius:56% 44% 42% 58%/52% 58% 42% 48%;transform:rotate(3deg)}
+  100%{border-radius:44% 56% 52% 48%/58% 42% 58% 42%;transform:rotate(-3deg)}
+}
+.hero-main-card{position:absolute;z-index:3;left:50%;top:50%;width:62%;aspect-ratio:4/5;transform:translate(-50%,-50%) rotate(-2deg);background:var(--card);padding:12px 12px 14px;border-radius:var(--r-lg);box-shadow:0 34px 70px -26px rgba(64,40,24,.45);border:1px solid rgba(255,255,255,.7)}
+.hero-main-card img{width:100%;height:78%;object-fit:cover;border-radius:18px}
+.hero-main-card .cap{display:flex;justify-content:space-between;align-items:center;padding:12px 6px 2px}
+.hero-main-card .cap b{font-family:'Fraunces',serif;font-weight:500;font-size:1.02rem}
+.hero-main-card .cap small{color:var(--muted);font-size:.72rem;letter-spacing:.04em;text-transform:uppercase}
+.hero-side{position:absolute;z-index:2;background:var(--card);border-radius:18px;padding:8px;box-shadow:var(--shadow-sm);border:1px solid rgba(255,255,255,.7);animation:floaty 7s ease-in-out infinite}
+.hero-side img{border-radius:12px;object-fit:cover;width:100%;height:100%}
+.hero-side.s1{width:26%;aspect-ratio:3/4;left:0%;bottom:12%;transform:rotate(-9deg)}
+.hero-side.s2{width:24%;aspect-ratio:3/4;right:0%;top:6%;transform:rotate(8deg);animation-delay:-3.4s}
+@keyframes floaty{0%,100%{translate:0 0}50%{translate:0 -14px}}
+.chip{position:absolute;z-index:5;display:flex;align-items:center;gap:10px;background:rgba(255,253,249,.92);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.8);border-radius:16px;padding:11px 16px;box-shadow:var(--shadow-sm)}
+.chip .ic{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--accent),var(--peach));color:#fff;flex-shrink:0}
+.chip b{display:block;font-size:.86rem;line-height:1.25}
+.chip small{color:var(--muted);font-size:.7rem}
+.chip.c1{left:-2%;top:20%;animation:floaty 6s ease-in-out infinite}
+.chip.c2{right:-1%;bottom:16%;animation:floaty 7.5s ease-in-out -2s infinite}
+
+/* hero entrance */
+.hero-in{opacity:0;transform:translateY(34px);transition:opacity 1s var(--ease),transform 1s var(--ease)}
+body.loaded .hero-in{opacity:1;transform:none}
+.d1{transition-delay:.05s}.d2{transition-delay:.15s}.d3{transition-delay:.27s}.d4{transition-delay:.4s}.d5{transition-delay:.55s}
+.hero-visual{opacity:0;transform:translateY(40px) scale(.97);transition:opacity 1.2s var(--ease) .25s,transform 1.2s var(--ease) .25s}
+body.loaded .hero-visual{opacity:1;transform:none}
+
+/* ============ MARQUEE ============ */
+.marquee{position:relative;z-index:3;background:var(--ink);color:#f3e8dc;transform:rotate(-1.6deg) scale(1.03);overflow:hidden;padding:16px 0;border-top:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08)}
+.marquee-track{display:flex;gap:0;width:max-content;animation:marquee 26s linear infinite}
+.marquee:hover .marquee-track{animation-play-state:paused}
+.marquee-item{display:flex;align-items:center;gap:28px;padding-right:28px;font-family:'Fraunces',serif;font-style:italic;font-size:1.15rem;letter-spacing:.02em;white-space:nowrap}
+.marquee-item svg{width:14px;height:14px;color:var(--peach);flex-shrink:0}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ============ SECTIONS ============ */
+section{position:relative;padding:110px 0}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:.74rem;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--accent-deep);margin-bottom:18px}
+.eyebrow::before{content:"";width:34px;height:2px;background:var(--accent);border-radius:2px}
+.h2{font-family:'Fraunces',serif;font-weight:400;font-size:clamp(2.1rem,4.4vw,3.3rem);line-height:1.08;letter-spacing:-.01em;max-width:16ch}
+.h2 em{font-style:italic;color:var(--accent)}
+.lead{color:var(--muted);max-width:52ch;margin-top:18px;font-size:1.05rem}
+
+[data-reveal]{opacity:0;transform:translateY(44px);transition:opacity .9s var(--ease),transform .9s var(--ease);transition-delay:var(--d,0s)}
+[data-reveal].in{opacity:1;transform:none}
+
+/* stats */
+.stats{padding:0 0 90px}
+.stats-card{background:var(--dark);border-radius:36px;padding:52px 48px;display:grid;grid-template-columns:repeat(4,1fr);gap:28px;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.stats-card::before{content:"";position:absolute;width:420px;height:420px;right:-140px;top:-160px;background:radial-gradient(circle,rgba(233,160,139,.4),transparent 65%);border-radius:50%}
+.stat{text-align:center;position:relative}
+.stat .num{font-family:'Fraunces',serif;font-size:clamp(2.2rem,4vw,3.1rem);font-weight:400;color:#fdf3ea;line-height:1}
+.stat .num small{font-size:.45em;color:var(--peach);font-style:italic}
+.stat p{margin-top:10px;color:#c9bba9;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase}
+
+/* collection */
+.collection-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:52px}
+.link-arrow{display:inline-flex;align-items:center;gap:9px;font-weight:700;font-size:.9rem;color:var(--accent-deep);padding-bottom:4px;border-bottom:2px solid transparent;transition:border-color .3s,gap .3s}
+.link-arrow:hover{border-color:var(--accent-deep);gap:14px}
+.products{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+.product{background:var(--card);border-radius:var(--r-lg);padding:12px;border:1px solid rgba(34,26,20,.07);box-shadow:var(--shadow-sm);transition:transform .55s var(--ease),box-shadow .55s var(--ease);position:relative;overflow:hidden;will-change:transform}
+.product:hover{transform:translateY(-12px);box-shadow:var(--shadow)}
+.product .img-wrap{position:relative;border-radius:18px;overflow:hidden;aspect-ratio:4/5;background:linear-gradient(160deg,var(--accent-soft),var(--peach))}
+.product img{width:100%;height:100%;object-fit:cover;transition:transform .8s var(--ease)}
+.product:hover img{transform:scale(1.1) rotate(1.5deg)}
+.product .tag{position:absolute;top:12px;left:12px;z-index:2;background:rgba(255,253,249,.92);backdrop-filter:blur(6px);font-size:.66rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:6px 12px;border-radius:999px;color:var(--accent-deep)}
+.product .shine{position:absolute;top:0;bottom:0;left:-80%;width:55%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-18deg);transition:left .9s var(--ease);z-index:2;pointer-events:none}
+.product:hover .shine{left:130%}
+.product .info{padding:16px 8px 8px}
+.product h3{font-family:'Fraunces',serif;font-weight:500;font-size:1.28rem;line-height:1.25}
+.product .desc{color:var(--muted);font-size:.82rem;margin:7px 0 12px;min-height:2.4em}
+.product .row{display:flex;justify-content:space-between;align-items:center}
+.price{font-family:'Fraunces',serif;font-size:1.25rem;font-weight:600;color:var(--ink)}
+.price small{font-size:.62rem;color:var(--muted);font-family:'Manrope';font-weight:600}
+.add-btn{width:44px;height:44px;border-radius:50%;background:var(--ink);color:#fdf7f1;display:flex;align-items:center;justify-content:center;transition:transform .4s var(--ease),background .3s}
+.add-btn:hover{transform:rotate(90deg) scale(1.12);background:var(--accent)}
+.product .rating{position:absolute;right:12px;bottom:12px;z-index:2;background:rgba(34,26,20,.72);backdrop-filter:blur(4px);color:#ffd9a8;font-size:.75rem;font-weight:700;padding:5px 10px;border-radius:999px;display:flex;gap:5px;align-items:center}
+
+/* ritual */
+.ritual{background:var(--bg-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.ritual-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:54px;position:relative}
+.ritual-grid::before{content:"";position:absolute;top:38px;left:12%;right:12%;border-top:2px dashed rgba(34,26,20,.16);z-index:0}
+.step{position:relative;z-index:1;text-align:center;padding:30px 22px;background:var(--card);border-radius:var(--r-lg);border:1px solid rgba(34,26,20,.06);transition:transform .5s var(--ease),box-shadow .5s,background .5s}
+.step:hover{transform:translateY(-14px);box-shadow:var(--shadow);background:#fff}
+.step .num{font-family:'Fraunces',serif;font-size:1.1rem;color:var(--accent);font-style:italic;display:block;margin-bottom:10px}
+.step .ico{width:74px;height:74px;margin:0 auto 20px;border-radius:26px;display:flex;align-items:center;justify-content:center;background:linear-gradient(150deg,#f8e6d6,#ecbb9f);color:var(--accent-deep);box-shadow:inset 0 0 0 1px rgba(255,255,255,.6)}
+.step:nth-child(2) .ico{background:linear-gradient(150deg,#e6eedd,#c3d3ae);color:#4c5a41}
+.step:nth-child(3) .ico{background:linear-gradient(150deg,#f6d3bd,#e2a184);color:#7e3c1f}
+.step h3{font-family:'Fraunces',serif;font-weight:500;font-size:1.5rem;margin-bottom:10px}
+.step p{color:var(--muted);font-size:.92rem}
+
+/* testimonials */
+.testimonials{padding-bottom:70px}
+.t-wrap{position:relative;max-width:880px;margin:56px auto 0;background:var(--card);border-radius:34px;border:1px solid rgba(34,26,20,.07);box-shadow:var(--shadow);overflow:hidden}
+.t-track{display:flex;transition:transform .8s var(--ease)}
+.t-slide{min-width:100%;padding:56px 8% 34px;text-align:center}
+.t-slide .quote-mark{font-family:'Fraunces',serif;font-size:5rem;line-height:.4;color:var(--peach);display:block;margin-bottom:26px}
+.t-slide blockquote{font-family:'Fraunces',serif;font-weight:400;font-style:italic;font-size:clamp(1.15rem,2.3vw,1.55rem);line-height:1.45;color:var(--ink)}
+.t-who{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:30px}
+.t-avatar{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:1rem;flex-shrink:0}
+.t-who .who-info{text-align:left}
+.t-who b{display:block;font-size:.95rem}
+.t-who small{color:var(--muted)}
+.t-controls{display:flex;align-items:center;justify-content:space-between;padding:0 8% 30px}
+.t-dots{display:flex;gap:9px}
+.t-dot{width:11px;height:11px;border-radius:99px;background:rgba(34,26,20,.18);transition:all .4s var(--ease);padding:0}
+.t-dot.active{background:var(--accent);width:34px}
+.t-arrows{display:flex;gap:10px}
+.t-arrow{width:46px;height:46px;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;transition:all .35s var(--ease)}
+.t-arrow:hover{background:var(--ink);color:#fdf7f1;border-color:var(--ink);transform:translateY(-2px)}
+
+/* faq */
+.faq-wrap{max-width:820px;margin:52px auto 0;display:flex;flex-direction:column;gap:14px}
+.faq-item{background:var(--card);border:1px solid rgba(34,26,20,.08);border-radius:var(--r-md);overflow:hidden;transition:box-shadow .4s,border-color .4s}
+.faq-item.open{border-color:rgba(201,111,74,.4);box-shadow:var(--shadow-sm)}
+.faq-q{width:100%;display:flex;justify-content:space-between;align-items:center;gap:20px;padding:22px 26px;text-align:left;font-weight:700;font-size:1.05rem}
+.faq-q .car{width:34px;height:34px;border-radius:50%;background:var(--accent-soft);color:var(--accent-deep);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .45s var(--ease),background .3s,color .3s}
+.faq-item.open .faq-q .car{transform:rotate(45deg);background:var(--accent);color:#fff}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .55s var(--ease)}
+.faq-a p{padding:0 26px 24px;color:var(--muted);font-size:.95rem}
+
+/* cta / newsletter */
+.cta-section{padding-bottom:110px}
+.cta-card{position:relative;overflow:hidden;background:var(--dark);border-radius:40px;padding:clamp(48px,7vw,90px);text-align:center;box-shadow:var(--shadow)}
+.cta-card::before{content:"";position:absolute;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(233,160,139,.5),transparent 62%);top:-260px;left:50%;transform:translateX(-50%);animation:drift 9s ease-in-out infinite alternate}
+.cta-card::after{content:"";position:absolute;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(125,139,111,.4),transparent 60%);bottom:-160px;right:-80px;animation:drift 12s ease-in-out infinite alternate-reverse}
+.cta-card h2{position:relative;z-index:2;font-family:'Fraunces',serif;font-weight:400;color:#fdf3ea;font-size:clamp(2rem,4.6vw,3.4rem);line-height:1.12;letter-spacing:-.01em}
+.cta-card h2 em{font-style:italic;color:var(--peach)}
+.cta-card p{position:relative;z-index:2;color:#c9bba9;max-width:46ch;margin:20px auto 34px}
+.cta-form{position:relative;z-index:2;display:flex;max-width:520px;margin:0 auto;background:rgba(255,253,249,.1);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:7px;backdrop-filter:blur(8px)}
+.cta-form input{flex:1;min-width:0;background:none;border:none;outline:none;color:#fdf3ea;font-size:1rem;padding:0 22px}
+.cta-form input::placeholder{color:#b3a48f}
+.cta-form button{background:linear-gradient(120deg,var(--accent),var(--rose));color:#fff;font-weight:800;padding:15px 30px;border-radius:999px;letter-spacing:.02em;transition:transform .35s var(--ease),box-shadow .35s;white-space:nowrap;display:inline-flex;align-items:center;gap:8px}
+.cta-form button:hover{transform:scale(1.05);box-shadow:0 14px 30px -10px rgba(201,111,74,.6)}
+.cta-note{position:relative;z-index:2;margin-top:18px;color:#8f8070;font-size:.78rem;letter-spacing:.04em}
+
+/* footer */
+footer{background:#171310;color:#b8a998;padding:64px 0 34px;border-top:1px solid rgba(255,255,255,.06)}
+.footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:40px;padding-bottom:44px;border-bottom:1px solid rgba(255,255,255,.08)}
+.footer-grid .logo{color:#f3e8dc;margin-bottom:16px}
+.footer-brand p{font-size:.9rem;max-width:32ch;line-height:1.7}
+footer h4{color:#f3e8dc;font-size:.78rem;letter-spacing:.18em;text-transform:uppercase;margin-bottom:18px}
+footer ul{list-style:none;display:flex;flex-direction:column;gap:11px}
+footer ul a{font-size:.9rem;transition:color .3s,padding-left .3s}
+footer ul a:hover{color:var(--peach);padding-left:6px}
+.socials{display:flex;gap:10px;margin-top:22px}
+.socials a{width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;transition:all .35s var(--ease)}
+.socials a:hover{background:var(--accent);border-color:var(--accent);color:#fff;transform:translateY(-4px)}
+.footer-bottom{display:flex;justify- justify-content:space-between;align-items:center;gap:18px;padding-top:26px;flex-wrap:wrap;font-size:.8rem}
+.footer-bottom a{transition:color .3s}
+.footer-bottom a:hover{color:var(--peach)}
+.footer-bottom .legal{display:flex;gap:20px;flex-wrap:wrap}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,140%);z-index:2500;background:var(--dark);color:#fdf3ea;padding:15px 24px;border-radius:999px;display:flex;align-items:center;gap:12px;font-size:.9rem;font-weight:600;box-shadow:0 20px 50px -14px rgba(0,0,0,.5);transition:transform .55s var(--ease);pointer-events:none;max-width:90vw;text-align:center}
+.toast.show{transform:translate(-50%,0)}
+.toast .t-ic{width:30px;height:30px;border-radius:50%;background:var(--sage);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.toast .t-ic svg{width:15px;height:15px}
+
+/* newsletter success note */
+.form-ok{display:none;position:relative;z-index:2;margin-top:20px;color:#cfe0c4;font-weight:700;letter-spacing:.02em}
+
+/* misc */
+.reveal-group > *{opacity:0;transform:translateY(40px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+.reveal-group.in > *{opacity:1;transform:none}
+.reveal-group.in > *:nth-child(1){transition-delay:.05s}.reveal-group.in > *:nth-child(2){transition-delay:.15s}.reveal-group.in > *:nth-child(3){transition-delay:.25s}.reveal-group.in > *:nth-child(4){transition-delay:.35s}.reveal-group.in > *:nth-child(5){transition-delay:.45s}.reveal-group.in > *:nth-child(6){transition-delay:.55s}
+
+/* ============ RESPONSIVE ============ */
+@media(max-width:1024px){
+  .products{grid-template-columns:repeat(2,1fr)}
+  .ritual-grid{grid-template-columns:1fr;max-width:520px;margin-left:auto;margin-right:auto}
+  .ritual-grid::before{display:none}
+  .stats-card{grid-template-columns:repeat(2,1fr);padding:44px 30px}
+  .footer-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:900px){
+  .nav-links,.nav-cta{display:none}
+  .menu-btn{display:flex}
+  .hero-grid{grid-template-columns:1fr;gap:44px}
+  .hero{padding-top:120px;min-height:auto}
+  .hero-visual{height:clamp(380px,64vw,520px);order:2}
+  .hero-visual{max-width:560px;margin:0 auto;width:100%}
+  section{padding:80px 0}
+}
+@media(max-width:640px){
+  .products{grid-template-columns:1fr}
+  .stats-card{grid-template-columns:1fr 1fr;padding:38px 22px;gap:22px;border-radius:28px}
+  .stat .num{font-size:2rem}
+  .hero h1{font-size:clamp(2.5rem,11vw,3.4rem)}
+  .cta-form{flex-direction:column;border-radius:26px;padding:10px}
+  .cta-form input{width:100%;padding:16px 14px;text-align:center}
+  .cta-form button{width:100%;justify-content:center}
+  .footer-grid{grid-template-columns:1fr}
+  .t-slide{padding:44px 8% 28px}
+  .t-arrows .t-arrow{width:40px;height:40px}
+  .trust{flex-wrap:wrap}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001s!important;animation-iteration-count:1!important;transition-duration:.001s!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+<div class="cursor-dot" id="cursorDot"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<div id="progressBar"></div>
+
+<!-- FALLBACK DE IMAGENS (captura erros antes do DOM carregar) -->
+<script>
+// SVG placeholder sofisticado, injetado automaticamente em qualquer imagem que falhe
+function aureliaPlaceholder(w,h){
+  const W = w||800, H = h||1000;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+    <defs>
+      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#f6d3bd"/><stop offset=".5" stop-color="#ecbb9f"/><stop offset="1" stop-color="#e3a68b"/>
+      </linearGradient>
+      <radialGradient id="r" cx=".5" cy=".42" r=".72">
+        <stop offset="0" stop-color="#ffffff" stop-opacity=".55"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="${W}" height="${H}" fill="url(#g)"/>
+    <circle cx="${W*0.5}" cy="${H*0.4}" r="${Math.min(W,H)*0.34}" fill="url(#r)"/>
+    <path d="M ${W*0.5} ${H*0.26} q ${W*0.16} ${H*0.1} 0 ${H*0.28} q -${W*0.16} -${H*0.1} 0 -${H*0.28} Z" fill="none" stroke="#fffdf9" stroke-width="${Math.max(2,W*0.006)}" opacity=".85"/>
+    <circle cx="${W*0.5}" cy="${H*0.4}" r="${Math.min(W,H)*0.05}" fill="#fffdf9" opacity=".9"/>
+    <text x="${W*0.5}" y="${H*0.68}" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-size="${Math.max(18,W*0.075)}" fill="#3a2417" opacity=".85">AURELIA</text>
+    <text x="${W*0.5}" y="${H*0.74}" text-anchor="middle" font-family="Arial, sans-serif" font-size="${Math.max(9,W*0.028)}" letter-spacing="3" fill="#3a2417" opacity=".6">IMAGEM EM BREVE</text>
+  </svg>`;
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+function aureliaSwap(img, evt){
+  // evita loop infinito
+  if (img.dataset.fallback === '1') return;
+  img.dataset.fallback = '1';
+  const w = img.naturalWidth || img.width || 800;
+  const h = img.naturalHeight || img.height || 1000;
+  img.src = aureliaPlaceholder(w, h);
+}
+window.addEventListener('error', function(e){
+  const t = e.target;
+  if (t && t.tagName === 'IMG') aureliaSwap(t, e);
+}, true);
+// cobre caso img já falhou antes deste script
+document.addEventListener('DOMContentLoaded', function(){
+  document.querySelectorAll('img').forEach(function(img){
+    if (!img.complete || img.naturalWidth === 0) aureliaSwap(img);
+  });
+});
+</script>
+
+<!-- ============ NAV ============ -->
+<header class="nav" id="nav">
+  <div class="nav-inner">
+    <a class="logo" href="#" aria-label="AURELIA — início"><span class="dot"></span>AURELIA</a>
+    <nav class="nav-links" aria-label="Principal">
+      <a href="#colecao">Coleção</a>
+      <a href="#ritual">Ritual</a>
+      <a href="#depoimentos">Depoimentos</a>
+      <a href="#faq">FAQ</a>
+      <a href="#newsletter">Newsletter</a>
+    </nav>
+    <a class="nav-cta" href="#colecao">Comprar agora
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </a>
+    <button class="menu-btn" id="menuBtn" aria-label="Abrir menu" aria-expanded="false"><span></span><span></span><span></span></button>
+  </div>
+</header>
+<aside class="mobile-panel" id="mobilePanel" aria-hidden="true">
+  <a href="#colecao">Coleção</a>
+  <a href="#ritual">Ritual</a>
+  <a href="#depoimentos">Depoimentos</a>
+  <a href="#faq">FAQ</a>
+  <a href="#newsletter">Newsletter</a>
+  <a href="#colecao" style="color:var(--accent-deep);border-bottom:none;padding-top:20px">Comprar agora →</a>
+</aside>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
+  <div class="container hero-grid">
+    <div>
+      <span class="pill hero-in d1"><span class="ping"></span>Novo — Ritual de Primavera</span>
+      <h1 class="hero-in d2">A beleza<br>que <em>respira</em>.</h1>
+      <p class="hero-sub hero-in d3">Séruns, cremes e óleos formulados com 95% de ingredientes naturais. Skincare vivo, pensado para a pele que quer viver com você — suave, profunda, luminosa.</p>
+      <div class="hero-actions hero-in d4">
+        <a class="btn btn-primary" href="#colecao">Explorar coleção
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+        <a class="btn btn-ghost" href="#ritual">Ver o ritual</a>
+      </div>
+      <div class="trust hero-in d5">
+        <div class="trust-avatars">
+          <span style="background:linear-gradient(135deg,#c96f4a,#e9a08b)">MC</span>
+          <span style="background:linear-gradient(135deg,#7d8b6f,#a9b896)">JB</span>
+          <span style="background:linear-gradient(135deg,#a85432,#f3c4a8)">PS</span>
+          <span style="background:linear-gradient(135deg,#221a14,#6f6259)">+9</span>
+        </div>
+        <div class="trust-info">
+          <strong>12.400+ clientes</strong>
+          <span class="stars">★★★★★</span> <span style="font-weight:700;color:var(--ink)">4,9</span> · Avaliações verificadas
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual" aria-hidden="true">
+      <div class="hero-blob"></div>
+      <div class="hero-main-card">
+        <img src="https://picsum.photos/seed/aurelia-hero/700/875" alt="Sérum AURELIA" onerror="this.style.opacity='0'">
+        <div class="cap"><b>Sérum Lumina</b><small>01 / Booster</small></div>
+      </div>
+      <div class="hero-side s1"><img src="https://picsum.photos/seed/aurelia-side-a/420/560" alt="Produto secundário"></div>
+      <div class="hero-side s2"><img src="https://picsum.photos/seed/aurelia-side-b/420/560" alt="Produto terciário"></div>
+      <div class="chip c1"><span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-4-3.5-8-6.5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 4.5-4 7.5-8 11Z"/></svg></span><span><b>95% naturais</b><small>ingredientes orgânicos</small></span></div>
+      <div class="chip c2"><span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span><b>7 min por dia</b><small>o ritual completo</small></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MARQUEE ============ -->
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span class="marquee-item">Fórmulas vivas<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5Z"/></svg></span>
+    <span class="marquee-item">95% naturais<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5Z"/></svg></span>
+    <span class="marquee-item">Cruelty-free<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5Z"/></svg></span>
+    <span class="marquee-item">Vegano<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5Z"/></svg></span>
+    <span class="marquee-item">Made in Brazil<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5Z"/></svg></span>
+    <span class="marquee-item">Fórmulas vivas<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5Z"/></svg></span>
+    <span class="marquee-item">95% naturais<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5Z"/></svg></span>
+    <span class="marquee-item">Cruelty-free<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5Z"/></svg></span>
+    <span class="marquee-item">Vegano<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5Z"/></svg></span>
+    <span class="marquee-item">Made in Brazil<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5Z"/></svg></span>
+  </div>
+</div>
+
+<!-- ============ STATS ============ -->
+<section class="stats" id="stats">
+  <div class="container">
+    <div class="stats-card" data-reveal>
+      <div class="stat"><div class="num"><span data-count="95">0</span><small>%</small></div><p>Ingredientes naturais</p></div>
+      <div class="stat"><div class="num"><span data-count="12400">0</span></div><p>Clientes satisfeitos</p></div>
+      <div class="stat"><div class="num"><span data-count="9">0</span><small>/10</small></div><p>Índice de satisfação</p></div>
+      <div class="stat"><div class="num"><span data-count="100">0</span><small>%</small></div><p>Cruelty-free</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ COLEÇÃO ============ -->
+<section id="colecao">
+  <div class="container">
+    <div class="collection-head" data-reveal>
+      <div>
+        <span class="eyebrow">Coleção</span>
+        <h2 class="h2">Três gemas,<br>uma <em>mesma</em> promessa.</h2>
+      </div>
+      <a class="link-arrow" href="#colecao">Ver toda a coleção
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+
+    <div class="products reveal-group">
+      <article class="product" data-reveal>
+        <div class="img-wrap">
+          <span class="tag">Mais amado</span>
+          <img src="https://picsum.photos/seed/aurelia-p1/600/750" alt="Sérum Lumina AURELIA">
+          <span class="shine"></span>
+          <span class="rating">★ 4.9</span>
+        </div>
+        <div class="info">
+          <h3>Sérum Lumina</h3>
+          <p class="desc">Vitamina C regeneradora + ácido hialurônico. Radiante em 14 dias.</p>
+          <div class="row"><span class="price">R$ 189 <small>/ 30ml</small></span>
+            <button class="add-btn" data-add="Sérum Lumina" aria-label="Adicionar Sérum Lumina ao carrinho"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+        </div>
+      </article>
+
+      <article class="product" data-reveal>
+        <div class="img-wrap">
+          <span class="tag">Novo</span>
+          <img src="https://picsum.photos/seed/aurelia-p2/600/750" alt="Creme Óleo Noturno AURELIA">
+          <span class="shine"></span>
+          <span class="rating">★ 4.8</span>
+        </div>
+        <div class="info">
+          <h3>Creme Óleo Noturno</h3>
+          <p class="desc">Ácidos graxos + cúrcuma. Hidratação profunda enquanto você dorme.</p>
+          <div class="row"><span class="price">R$ 229 <small>/ 50ml</small></span>
+            <button class="add-btn" data-add="Creme Óleo Noturno" aria-label="Adicionar Creme Óleo Noturno ao carrinho"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+        </div>
+      </article>
+
+      <article class="product" data-reveal>
+        <div class="img-wrap">
+          <span class="tag">Edição</span>
+          <img src="https://picsum.photos/seed/aurelia-p3/600/750" alt="Máscara de Argila Terra AURELIA">
+          <span class="shine"></span>
+          <span class="rating">★ 5.0</span>
+        </div>
+        <div class="info">
+          <h3>Máscara de Argila Terra</h3>
+          <p class="desc">Argila verde + óleos essenciais. Pele equilibrando, poros apurados.</p>
+          <div class="row"><span class="price">R$ 119 <small>/ 75g</small></span>
+            <button class="add-btn" data-add="Máscara de Argila Terra" aria-label="Adicionar Máscara de Argila Terra ao carrinho"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+        </div>
+      </article>
+
+      <article class="product" data-reveal>
+        <div class="img-wrap">
+          <span class="tag">Top vendedor</span>
+          <img src="https://picsum.photos/seed/aurelia-p4/600/750" alt="Sérum Revital + Açafrão AURELIA">
+          <span class="shine"></span>
+          <span class="rating">★ 4.9</span>
+        </div>
+        <div class="info">
+          <h3>Bright + Açafrão</h3>
+          <p class="desc">Curcumina + niacinamida. Uniformidade de tom em dias curtos.</p>
+          <div class="row"><span class="price">R$ 169 <small>/ 30ml</small></span>
+            <button class="add-btn" data-add="Bright + Açafrão" aria-label="Adicionar Bright + Açafrão ao carrinho"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RITUAL ============ -->
+<section class="ritual" id="ritual">
+  <div class="container">
+    <span class="eyebrow" data-reveal>O Ritual</span>
+    <h2 class="h2" data-reveal>Três passos.<br><em>Zero</em> pressa.</h2>
+    <p class="lead" data-reveal>O ritual AURELIA foi pensado para 7 minutos por dia — um respiro de cuidado antes de viver.</p>
+
+    <div class="ritual-grid">
+      <div class="step" data-reveal>
+        <span class="num">01 — Limpar</span>
+        <div class="ico"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-3.5 3.2-6 6.4-6 10a6 6 0 0 0 12 0c0-3.6-2.5-6.8-6-10Z"/><path d="M9 14a3 3 0 0 0 3 3"/></svg></div>
+        <h3>Purificar</h3>
+        <p>Água mineral para equilibrar, espuma suave que respeita a barreira cutânea.</p>
+      </div>
+      <div class="step" data-reveal>
+        <span class="num">02 — Alimentar</span>
+        <div class="ico"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="16" rx="3"/><path d="M9 4v4M15 4v4M9 11h6M9 15h6"/></svg></div>
+        <h3>Nutrir</h3>
+        <p>Sérum concentrado de ativos vivos — o momento de maior absorção.</p>
+      </div>
+      <div class="step" data-reveal>
+        <span class="num">03 — Proteger</span>
+        <div class="ico"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6Z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <h3>Proteger</h3>
+        <p>Creme nutritivo e proteção solar — o selamento que garante o efeito.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DEPOIMENTOS ============ -->
+<section class="testimonials" id="depoimentos">
+  <div class="container">
+    <span class="eyebrow" data-reveal>Depoimentos</span>
+    <h2 class="h2" data-reveal>Quem usa, <em>recomenda</em>.</h2>
+
+    <div class="t-wrap" data-reveal>
+      <div class="t-track" id="tTrack">
+        <div class="t-slide">
+          <span class="quote-mark">”</span>
+          <blockquote>A pele mudou em duas semanas. Não é exagero — luminosidade que eu nem sabia que a minha poderia ter.</blockquote>
+          <div class="t-who"><span class="t-avatar" style="background:linear-gradient(135deg,#c96f4a,#e9a08b)">MC</span><span class="who-info"><b>Mariana Costa</b><small>Comprou em São Paulo</small></span></div>
+        </div>
+        <div class="t-slide">
+          <span class="quote-mark">”</span>
+          <blockquote>Uso o ritual todas as manhãs antes do trabalho. 7 minutos, sem pressa, e a pele agradece.</blockquote>
+          <div class="t-who"><span class="t-avatar" style="background:linear-gradient(135deg,#7d8b6f,#a9b896)">JB</span><span class="who-info"><b>Juliana Barbosa</b><small>Comprou em Curitiba</small></span></div>
+        </div>
+        <div class="t-slide">
+          <span class="quote-mark">”</span>
+          <blockquote>Ingredientes limpos, peloтиров impecável, sensação premium. Parece skincare de clínica, não de farmácia.</blockquote>
+          <div class="t-who"><span class="t-avatar" style="background:linear-gradient(135deg,#a85432,#f3c4a8)">PS</span><span class="who-info"><b>Patricia Souza</b><small>Comprou no Rio de Janeiro</small></span></div>
+        </div>
+      </div>
+      <div class="t-controls">
+        <div class="t-dots" id="tDots"></div>
+        <div class="t-arrows">
+          <button class="t-arrow" id="tPrev" aria-label="Depoimento anterior"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg></button>
+          <button class="t-arrow" id="tNext" aria-label="Próximo depoimento"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section id="faq" style="padding-top:30px">
+  <div class="container">
+    <span class="eyebrow" data-reveal>FAQ</span>
+    <h2 class="h2" data-reveal>Perguntas<br><em>frequentes</em>.</h2>
+    <div class="faq-wrap">
+      <div class="faq-item" data-reveal>
+        <button class="faq-q">A AURELIA é vegana? Deixe-me perguntar<span class="car"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
+        <div class="faq-a"><p>Sim. Todos os nossos produtos são veganos e cruelty-free — sem derivados de origem animal em nenhuma etapa, incluindo embalagens cartoneiradas reciclável.</p></div>
+      </div>
+      <div class="faq-item" data-reveal>
+        <button class="faq-q">Os produtos são testados em peles sensíveis?<span class="car"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
+        <div class="faq-a"><p>Sim. Cada fórmula é testada em 80+ participantes com pele sensível antes do lançamento. Nenhuma das fórmulas contém fragrâncias sintéticas agressivas nem parabenos.</p></div>
+      </div>
+      <div class="faq-item" data-reveal>
+        <button class="faq-q">Posso trocar ou devolver?<span class="car"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
+        <div class="faq-a"><p>Sim — você tem 30 dias para se arrepender. Reembolso integral sem burocracia, mesmo com a embalagem intacta ou não.</p></div>
+      </div>
+      <div class="faq-item" data-reveal>
+        <button class="faq-q">Como é a entrega?<span class="car"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
+        <div class="faq-a"><p>Frete grátis em todo o Brasil a partir de R$ 150. Entrega estimada de 3 a 7 dias úteis, com embalagem sustentável retornável.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ NEWSLETTER / CTA ============ -->
+<section class="cta-section" id="newsletter">
+  <div class="container">
+    <div class="cta-card" data-reveal>
+      <h2>Junte-se à <em>comunidade</em> AURELIA.</h2>
+      <p>Receba 10% de desconto no primeiro pedido, ritual semanal e novidades de lançamento. Sem spam — só beleza com alma.</p>
+      <form class="cta-form" id="newsForm" novalidate>
+        <input type="email" id="newsInput" placeholder="seu@email.com" aria-label="Seu e-mail" required>
+        <button type="submit">Assinar
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </form>
+      <span class="cta-note">Ao assinar, você concorda com nossa política de privacidade e pode cancelar quando quiser.</span>
+      <span class="form-ok" id="formOk">✓ Inscrição confirmada — bem-vinda à comunidade.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a class="logo" href="#"><span class="dot"></span>AURELIA</a>
+        <p>Skincare premium com alma — fórmulas vivas, 95% naturais, ritual que respira. Feito com carinho no Brasil.</p>
+        <div class="socials">
+          <a href="#" aria-label="Instagram"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.1" fill="currentColor" stroke="none"/></svg></a>
+          <a href="#" aria-label="Pinterest"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 20l2.6-7.2M8.6 9.6a3.4 3.4 0 1 1 5.2 1.9l-2.6 7.5"/></svg></a>
+          <a href="#" aria-label="YouTube"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="3.5"/><path d="M10.2 9.8 14.5 12l-4.3 2.2Z" fill="currentColor" stroke="none"/></svg></a>
+          <a href="#" aria-label="Spotify"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 10.5c2.3-.8 4.8-.6 7.5.7M8.5 13.5c2-.6 4-.5 6.2.5M8.7 16.3c1.7-.4 3.4-.3 5 .4"/></svg></a>
+        </div>
+      </div>
+      <div>
+        <h4>Comprar</h4>
+        <ul>
+          <li><a href="#colecao">Sérum Lumina</a></li>
+          <li><a href="#colecao">Creme Óleo Noturno</a></li>
+          <li><a href="#colecao">Máscara de Argila</a></li>
+          <li><a href="#colecao">Bright + Açafrão</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>A marca</h4>
+        <ul>
+          <li><a href="#ritual">Ritual</a></li>
+          <li><a href="#stats">Valores</a></li>
+          <li><a href="#depoimentos">Avaliações</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contato</h4>
+        <ul>
+          <li><a href="mailto:ola@aurelia.com.br">ola@aurelia.com.br</a></li>
+          <li><a href="tel:+5511987654321">+55 (11) 98765-4321</a></li>
+          <li><a href="#">Atendimento 7 dias</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="year">2025</span> AURELIA Skincare. Todos os direitos reservados.</span>
+      <div class="legal">
+        <a href="#">Privacidade</a>
+        <a href="#">Termos</a>
+        <a href="#">Cookies</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- toast -->
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span class="t-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 7"/></svg></span>
+  <span id="toastMsg">Adicionado ao carrinho</span>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- loaded / entrance ---------- */
+  window.addEventListener('load', function(){ document.body.classList.add('loaded'); });
+  // fallback se load nunca dispare (ex.: cache pesado)
+  setTimeout(function(){ document.body.classList.add('loaded'); }, 1200);
+
+  /* ---------- progress bar + nav ---------- */
+  var progress = document.getElementById('progressBar');
+  var nav = document.getElementById('nav');
+  function onScroll(){
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    var p = max > 0 ? (h.scrollTop / max) : 0;
+    progress.style.transform = 'scaleX(' + p + ')';
+    nav.classList.toggle('scrolled', h.scrollTop > 24);
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+
+  /* ---------- cursor ---------- */
+  var dot = document.getElementById('cursorDot');
+  var ring = document.getElementById('cursorRing');
+  var mx = -100, my = -100, rx = -100, ry = -100;
+  var coarse = window.matchMedia('(pointer: coarse)').matches;
+  if (!coarse){
+    document.addEventListener('mousemove', function(e){ mx = e.clientX; my = e.clientY; dot.style.transform = 'translate(' + mx + 'px,' + my + 'px) translate(-50%,-50%)'; dot.style.left = '0'; dot.style.top = '0'; });
+    (function loop(){ rx += (mx - rx) * .16; ry += (my - ry) * .16; ring.style.transform = 'translate(' + rx + 'px,' + ry + 'px) translate(-50%,-50%)'; requestAnimationFrame(loop); })();
+    document.querySelectorAll('a,button,.product,.t-dot,.faq-q').forEach(function(el){
+      el.addEventListener('mouseenter', function(){ ring.classList.add('hovering'); });
+      el.addEventListener('mouseleave', function(){ ring.classList.remove('hovering'); });
+    });
+    document.addEventListener('mouseleave', function(){ dot.style.opacity = 0; ring.style.opacity = 0; });
+    document.addEventListener('mouseenter', function(){ dot.style.opacity = 1; ring.style.opacity = 1; });
+  }
+
+  /* ---------- reveal on scroll ---------- */
+  var revealEls = document.querySelectorAll('[data-reveal], .reveal-group');
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if (en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); }
+    });
+  }, {threshold: 0.12, rootMargin: '0px 0px -40px 0px'});
+  revealEls.forEach(function(el){ io.observe(el); });
+
+  /* ---------- counters ---------- */
+  function animateCount(el){
+    var target = parseFloat(el.dataset.count) || 0;
+    var dur = 1700, start = null;
+    var fmt = function(n){ return Math.round(n).toLocaleString('pt-BR'); };
+    function step(ts){
+      if (!start) start = ts;
+      var p = Math.min((ts - start) / dur, 1);
+      var eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmt(target * eased);
+      if (p < 1) requestAnimationFrame(step);
+      else el.textContent = fmt(target);
+    }
+    requestAnimationFrame(step);
+  }
+  var counterIO = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if (en.isIntersecting){ animateCount(en.target); counterIO.unobserve(en.target); }
+    });
+  }, {threshold: 0.6});
+  document.querySelectorAll('[data-count]').forEach(function(el){ counterIO.observe(el); });
+
+  /* ---------- testimonial slider ---------- */
+  var track = document.getElementById('tTrack');
+  var slides = track.children.length;
+  var dotsWrap = document.getElementById('tDots');
+  var current = 0, autoTimer;
+
+  for (var i = 0; i < slides; i++){
+    var d = document.createElement('button');
+    d.className = 't-dot' + (i === 0 ? ' active' : '');
+    d.setAttribute('aria-label', 'Ir para depoimento ' + (i + 1));
+    (function(idx){ d.addEventListener('click', function(){ go(idx); restartAuto(); }); })(i);
+    dotsWrap.appendChild(d);
+  }
+  var dotEls = dotsWrap.children;
+  function go(i){
+    current = (i + slides) % slides;
+    track.style.transform = 'translateX(-' + (current * 100) + '%)';
+    for (var i = 0; i < dotEls.length; i++) dotEls[i].classList.toggle('active', i === current);
+  }
+  function next(){ go(current + 1); }
+  function prev(){ go(current - 1); }
+  function restartAuto(){ clearInterval(autoTimer); autoTimer = setInterval(next, 6000); }
+  document.getElementById('tNext').addEventListener('click', function(){ next(); restartAuto(); });
+  document.getElementById('tPrev').addEventListener('click', function(){ prev(); restartAuto(); });
+  dotsWrap.addEventListener('mouseenter', function(){ clearInterval(autoTimer); });
+  dotsWrap.addEventListener('mouseleave', restartAuto);
+  restartAuto();
+
+  /* ---------- FAQ accordion ---------- */
+  document.querySelectorAll('.faq-item').forEach(function(item){
+    var q = item.querySelector('.faq-q');
+    var a = item.querySelector('.faq-a');
+    q.addEventListener('click', function(){
+      var open = item.classList.contains('open');
+      // fecha todos
+      document.querySelectorAll('.faq-item.open').forEach(function(o){
+        o.classList.remove('open');
+        o.querySelector('.faq-a').style.maxHeight = null;
+      });
+      if (!open){
+        item.classList.add('open');
+        a.style.maxHeight = a.scrollHeight + 'px';
+      }
+    });
+  });
+  // abrir o primeiro por padrão
+  var first = document.querySelector('.faq-item');
+  if (first){
+    first.classList.add('open');
+    var fa = first.querySelector('.faq-a');
+    fa.style.maxHeight = fa.scrollHeight + 'px';
+  }
+  window.addEventListener('resize', function(){
+    document.querySelectorAll('.faq-item.open .faq-a').forEach(function(a){ a.style.maxHeight = a.scrollHeight + 'px'; });
+  });
+
+  /* ---------- mobile menu ---------- */
+  var menuBtn = document.getElementById('menuBtn');
+  var panel = document.getElementById('mobilePanel');
+  function toggleMenu(force){
+    var open = typeof force === 'boolean' ? force : !document.body.classList.contains('menu-open');
+    document.body.classList.toggle('menu-open', open);
+    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    panel.setAttribute('aria-hidden', open ? 'false' : 'true');
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
+  menuBtn.addEventListener('click', function(){ toggleMenu(); });
+  panel.querySelectorAll('a').forEach(function(a){ a.addEventListener('click', function(){ toggleMenu(false); }); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') toggleMenu(false); });
+
+  /* ---------- toast ---------- */
+  var toast = document.getElementById('toast');
+  var toastMsg = document.getElementById('toastMsg');
+  var toastTimer;
+  function showToast(msg){
+    toastMsg.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toast.classList.remove('show'); }, 2600);
+  }
+
+  /* ---------- add to cart ---------- */
+  document.querySelectorAll('.add-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var name = btn.getAttribute('data-add') || 'Produto';
+      showToast(name + ' adicionado ao carrinho');
+      btn.style.transform = 'rotate(180deg) scale(1.2)';
+      setTimeout(function(){ btn.style.transform = ''; }, 450);
+    });
+  });
+
+  /* ---------- newsletter ---------- */
+  var form = document.getElementById('newsForm');
+  var input = document.getElementById('newsInput');
+  var ok = document.getElementById('formOk');
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var v = input.value.trim();
+    var valid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
+    if (!valid){
+      input.style.color = '#f3b8a0';
+      input.placeholder = 'E-mail inválido';
+      showToast('Por favor, insira um e-mail válido');
+      input.focus();
+      return;
+    }
+    input.style.color = '';
+    form.style.display = 'none';
+    ok.style.display = 'block';
+    showToast('Inscrição confirmada — bem-vinda!');
+  });
+
+  /* ---------- year ---------- */
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  /* ---------- hero parallax subtle ---------- */
+  var hero = document.querySelector('.hero');
+  var blobs = hero ? hero.querySelectorAll('.orb') : [];
+  window.addEventListener('scroll', function(){
+    var y = window.scrollY;
+    if (y < window.innerHeight){
+      blobs.forEach(function(b, idx){
+        var f = (idx + 1) * 0.08;
+        b.style.transform = 'translate3d(0,' + (y * f) + 'px,0)';
+      });
+    }
+  }, {passive:true});
+})();
+</script>
+</body>
+</html>
